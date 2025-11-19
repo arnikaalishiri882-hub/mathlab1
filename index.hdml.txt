@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <title>آزمایشگاه تعاملی مجموعه‌ها | MathLab</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="special">
+
+<div id="app">
+
+    <header>
+        <h1>آزمایشگاه تعاملی مجموعه‌ها</h1>
+
+        <select id="themeSelector" onchange="changeTheme()">
+            <option value="special">🌟 تم ویژه</option>
+            <option value="light">☀️ تم روشن</option>
+            <option value="dark">🌙 تم تیره</option>
+        </select>
+    </header>
+
+    <section id="mainBox">
+        <p class="bold">به برنامه خوش آمدید!</p>
+
+        <p>نوع پاسخ‌دهی را انتخاب کنید:</p>
+
+        <button onclick="setMode('short')">پاسخ کوتاه</button>
+        <button onclick="setMode('long')">پاسخ طولانی</button>
+
+        <div id="step" class="fade"></div>
+    </section>
+
+    <!-- نمودار ون -->
+    <div id="vennContainer">
+        <svg id="venn" width="300" height="200">
+            <circle id="circleA" cx="120" cy="100" r="70" fill="rgba(255,0,0,0.35)"></circle>
+            <circle id="circleB" cx="180" cy="100" r="70" fill="rgba(0,0,255,0.35)"></circle>
+        </svg>
+    </div>
+
+    <!-- کیبورد ریاضی -->
+    <div id="keyboard">
+        <button onclick="write('∪')">∪</button>
+        <button onclick="write('∩')">∩</button>
+        <button onclick="write('−')">−</button>
+        <button onclick="write('⊂')">⊂</button>
+        <button onclick="write('⊄')">⊄</button>
+        <button onclick="write('∈')">∈</button>
+        <button onclick="write('∉')">∉</button>
+        <button onclick="write('√')">√</button>
+        <button onclick="write('/')">/</button>
+        <button onclick="toggleKeyboard()">بستن</button>
+    </div>
+
+    <button id="keyboardBtn" onclick="toggleKeyboard()">⌨️ کیبورد</button>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

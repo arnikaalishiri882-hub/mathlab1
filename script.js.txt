@@ -1,0 +1,250 @@
+let mode = "short";
+let sets = {};
+
+/* بازیابی از LocalStorage */
+if (localStorage.getItem("sets")) {
+    sets = JSON.parse(localStorage.getItem("sets"));
+    showOperations();
+}
+
+/* ----------------------------- */
+/* انتخاب حالت پاسخ‌دهی */
+/* ----------------------------- */
+
+function setMode(type) {
+    mode = type;
+
+    document.getElementById("step").innerHTML = `
+        <p>تعداد مجموعه‌ها را وارد کنید:</p>
+        <input id="countInput" type="number">
+        <button onclick="getSetCount()">ثبت</button>
+    `;
+}
+
+/* ----------------------------- */
+/* دریافت تعداد مجموعه‌ها */
+/* ----------------------------- */
+
+function getSetCount() {
+    let n = document.getElementById("countInput").value;
+    let html = "";
+
+    for (let i = 1; i <= n; i++) {
+        html += `
+            <p class="important">نام مجموعه ${i}:</p>
+            <input id="name${i}">
+            <p>عناصر را وارد کنید (با کاما جدا):</p>
+            <input id="items${i}">
+            <hr>
+        `;
+    }
+
+    html += `<button onclick="saveSets(${n})">ثبت مجموعه‌ها</button>`;
+
+    document.getElementById("step").innerHTML = html;
+}
+
+/* ----------------------------- */
+/* ذخیره‌سازی مجموعه‌ها */
+/* ----------------------------- */
+
+function saveSets(n) {
+    sets = {};
+
+    for (let i = 1; i <= n; i++) {
+        let name = document.getElementById("name" + i).value;
+        let items = document.getElementById("items" + i).value
+            .split(",")
+            .map(x => x.trim());
+
+        sets[name] = items;
+    }
+
+    localStorage.setItem("sets", JSON.stringify(sets));
+
+    showOperations();
+}
+
+/* ----------------------------- */
+/* منوی عملیات */
+/* ----------------------------- */
+
+function showOperations() {
+    let html = `
+        <p class="bold">عملیات مورد نظر را انتخاب کنید:</p>
+
+        <button onclick="unionPrompt()">اجتماع</button>
+        <button onclick="interPrompt()">اشتراک</button>
+        <button onclick="diffPrompt()">تفاضل</button>
+        <button onclick="subsetPrompt()">زیرمجموعه‌ها</button>
+        <button onclick="vennPrompt()">نمودار وِن</button>
+    `;
+
+    document.getElementById("step").innerHTML = html;
+}
+
+/* ----------------------------- */
+/* عملیات مجموعه‌ها */
+/* ----------------------------- */
+
+function union(a, b) {
+    return [...new Set([...sets[a], ...sets[b]])];
+}
+
+function inter(a, b) {
+    return sets[a].filter(x => sets[b].includes(x));
+}
+
+function diff(a, b) {
+    return sets[a].filter(x => !sets[b].includes(x));
+}
+
+/* ----------------------------- */
+/* درخواست انتخاب دو مجموعه */
+/* ----------------------------- */
+
+function askTwoSets(title, callback) {
+    let names = Object.keys(sets);
+
+    let html = `
+        <p class="bold">${title}</p>
+
+        <p>مجموعه اول:</p>
+        <select id="s1">${names.map(n => `<option>${n}</option>`)}</select>
+
+        <p>مجموعه دوم:</p>
+        <select id="s2">${names.map(n => `<option>${n}</option>`)}</select>
+
+        <button onclick="runTwoSetOp(${callback})">اجرا</button>
+    `;
+
+    document.getElementById("step").innerHTML = html;
+}
+
+function runTwoSetOp(callback) {
+    let a = document.getElementById("s1").value;
+    let b = document.getElementById("s2").value;
+    callback(a, b);
+}
+
+/* ----------------------------- */
+/* نمایش نتیجه */
+/* ----------------------------- */
+
+function showResult(res) {
+    let html = `<p class="bold">نتیجه:</p>`;
+
+    if (mode === "short") {
+        html += `<p>${res.join(", ")}</p>`;
+    } else {
+        html += `
+            <p class="important">توضیح:</p>
+            <p>تمام مراحل محاسبه انجام شد.</p>
+            <p>نتیجه نهایی:</p>
+            <p>${res.join(", ")}</p>
+        `;
+    }
+
+    html += `<button onclick="showOperations()">بازگشت</button>`;
+
+    document.getElementById("step").innerHTML = html;
+}
+
+/* ----------------------------- */
+/* عملیات‌ها برای UI */
+/* ----------------------------- */
+
+function unionPrompt() {
+    askTwoSets("اجتماع", (a, b) => showResult(union(a, b)));
+}
+
+function interPrompt() {
+    askTwoSets("اشتراک", (a, b) => showResult(inter(a, b)));
+}
+
+function diffPrompt() {
+    askTwoSets("تفاضل", (a, b) => showResult(diff(a, b)));
+}
+
+/* ----------------------------- */
+/* زیرمجموعه‌ها */
+/* ----------------------------- */
+
+function subsetPrompt() {
+    let names = Object.keys(sets);
+
+    let html = `
+        <p class="bold">انتخاب مجموعه برای تولید زیرمجموعه‌ها</p>
+
+        <select id="subSetSel">
+            ${names.map(n => `<option>${n}</option>`)}
+        </select>
+
+        <button onclick="showSubsets()">نمایش زیرمجموعه‌ها</button>
+    `;
+
+    document.getElementById("step").innerHTML = html;
+}
+
+function showSubsets() {
+    let name = document.getElementById("subSetSel").value;
+    let arr = sets[name];
+
+    let result = [[]];
+
+    arr.forEach(el => {
+        result.forEach(sub => {
+            result.push([...sub, el]);
+        });
+    });
+
+    showResult(result.map(s => `{${s.join(", ")}}`));
+}
+
+/* ----------------------------- */
+/* نمودار ون */
+/* ----------------------------- */
+
+function vennPrompt() {
+    askTwoSets("نمودار ون", (a, b) => showVenn(a, b));
+}
+
+function showVenn(a, b) {
+    document.getElementById("vennContainer").style.display = "block";
+    document.getElementById("step").innerHTML = `
+        <p class="bold">نمودار ون مجموعه‌های ${a} و ${b}</p>
+        <button onclick="hideVenn()">بستن نمودار</button>
+    `;
+}
+
+function hideVenn() {
+    document.getElementById("vennContainer").style.display = "none";
+    showOperations();
+}
+
+/* ----------------------------- */
+/* تم‌ها */
+/* ----------------------------- */
+
+function changeTheme() {
+    let t = document.getElementById("themeSelector").value;
+    document.body.className = t;
+}
+
+/* ----------------------------- */
+/* کیبورد ریاضی */
+/* ----------------------------- */
+
+function toggleKeyboard() {
+    let kb = document.getElementById("keyboard");
+    if (kb.style.bottom === "10px")
+        kb.style.bottom = "-300px";
+    else
+        kb.style.bottom = "10px";
+}
+
+function write(v) {
+    if (document.activeElement.tagName === "INPUT") {
+        document.activeElement.value += v;
+    }
+}
